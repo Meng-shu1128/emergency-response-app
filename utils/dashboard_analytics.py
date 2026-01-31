@@ -5,6 +5,14 @@ import plotly.express as px
 from datetime import datetime, timedelta
 import io
 
+def rerun():
+    if 'rerun' not in st.session_state:
+        st.session_state.rerun = False
+    
+    if st.session_state.rerun:
+        st.session_state.rerun = False
+        st.experimental_rerun()
+
 def get_time_range_data(alerts, time_range):
     now = datetime.now()
     
@@ -275,7 +283,8 @@ def show_dashboard_analytics(alerts, response_logs):
         auto_refresh = st.checkbox("自动刷新", value=False, key="analytics_auto_refresh")
     
     if auto_refresh:
-        st.rerun()
+        st.session_state.rerun = True
+        rerun()
     
     filtered_alerts = get_time_range_data(alerts, time_range)
     

@@ -5,6 +5,14 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.database import get_users, get_alerts
 
+def rerun():
+    if 'rerun' not in st.session_state:
+        st.session_state.rerun = False
+    
+    if st.session_state.rerun:
+        st.session_state.rerun = False
+        st.experimental_rerun()
+
 def show_settings():
     st.title("⚙️ 系统设置")
     st.markdown("---")
@@ -142,4 +150,5 @@ NOTIFICATION_API_KEY={notification_api_key}""")
                 from utils.database import init_database
                 init_database()
                 st.success("数据库已重置！")
-                st.rerun()
+                st.session_state.rerun = True
+                rerun()

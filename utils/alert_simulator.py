@@ -8,6 +8,14 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.database import get_users, create_alert
 
+def rerun():
+    if 'rerun' not in st.session_state:
+        st.session_state.rerun = False
+    
+    if st.session_state.rerun:
+        st.session_state.rerun = False
+        st.experimental_rerun()
+
 VILLAGE_BOUNDARIES = {
     'village_1': {
         'name': '东村',
@@ -110,12 +118,14 @@ def run_alert_simulation(interval_seconds=30):
         st.session_state.simulation_running = True
         st.session_state.simulation_logs = []
         st.success("模拟已启动！每30秒生成一条随机警报。")
-        st.rerun()
+        st.session_state.rerun = True
+        rerun()
     
     if stop_button:
         st.session_state.simulation_running = False
         st.warning("模拟已停止！")
-        st.rerun()
+        st.session_state.rerun = True
+        rerun()
     
     if st.session_state.simulation_running:
         status_container = st.empty()

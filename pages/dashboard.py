@@ -13,6 +13,14 @@ from utils.dashboard_analytics import show_dashboard_analytics
 from utils.notification_system import show_notification_system_ui, send_emergency_notification
 from streamlit_folium import st_folium
 
+def rerun():
+    if 'rerun' not in st.session_state:
+        st.session_state.rerun = False
+    
+    if st.session_state.rerun:
+        st.session_state.rerun = False
+        st.experimental_rerun()
+
 @st.cache_data(ttl=30)
 def _load_dashboard_stats():
     return get_statistics()
@@ -138,13 +146,15 @@ def show_dashboard():
                                 if st.button("开始处理", key=f"process_{alert['id']}", use_container_width=True):
                                     update_alert_status(alert['id'], 'processing')
                                     add_response_log(alert['id'], '系统', '状态更新', '求助开始处理')
-                                    st.rerun()
+                                    st.session_state.rerun = True
+                                    rerun()
                             
                             if alert['status'] == 'processing':
                                 if st.button("标记为已解决", key=f"resolve_{alert['id']}", use_container_width=True):
                                     update_alert_status(alert['id'], 'resolved')
                                     add_response_log(alert['id'], '系统', '状态更新', '求助已解决')
-                                    st.rerun()
+                                    st.session_state.rerun = True
+                                    rerun()
                             
                             with st.form(f"response_form_{alert['id']}"):
                                 responder = st.text_input("响应人员", placeholder="请输入姓名")
@@ -155,7 +165,8 @@ def show_dashboard():
                                     if responder:
                                         add_response_log(alert['id'], responder, action_type, notes)
                                         st.success("响应记录已添加！")
-                                        st.rerun()
+                                        st.session_state.rerun = True
+                                        rerun()
                                     else:
                                         st.error("请输入响应人员姓名！")
                 
@@ -168,7 +179,8 @@ def show_dashboard():
                 with col1:
                     if st.button("⬅️ 上一页", disabled=alerts_result['page'] <= 1, key="alert_prev_page"):
                         st.session_state.alerts_page -= 1
-                        st.rerun()
+                        st.session_state.rerun = True
+                        rerun()
                 
                 with col2:
                     st.write(f"第 {alerts_result['page']} 页 / 共 {alerts_result['total_pages']} 页")
@@ -176,7 +188,8 @@ def show_dashboard():
                 with col3:
                     if st.button("➡️ 下一页", disabled=alerts_result['page'] >= alerts_result['total_pages'], key="alert_next_page"):
                         st.session_state.alerts_page += 1
-                        st.rerun()
+                        st.session_state.rerun = True
+                        rerun()
             else:
                 st.info("没有符合条件的求助记录")
         else:

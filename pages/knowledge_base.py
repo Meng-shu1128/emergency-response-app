@@ -20,6 +20,14 @@ def save_knowledge_base(data):
     with open(KNOWLEDGE_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
+def rerun():
+    if 'rerun' not in st.session_state:
+        st.session_state.rerun = False
+    
+    if st.session_state.rerun:
+        st.session_state.rerun = False
+        st.experimental_rerun()
+
 def show_knowledge_base():
     st.title("📚 知识库管理")
     st.markdown("---")
@@ -50,7 +58,8 @@ def show_knowledge_base():
                         })
                         save_knowledge_base(kb)
                         st.success("联系人已添加！")
-                        st.rerun()
+                        st.session_state.rerun = True
+                        rerun()
                     else:
                         st.error("请填写姓名和电话！")
         
@@ -65,7 +74,8 @@ def show_knowledge_base():
                     if st.button("删除", key=f"del_contact_{idx}"):
                         kb['emergency_contacts'].pop(idx)
                         save_knowledge_base(kb)
-                        st.rerun()
+                        st.session_state.rerun = True
+                        rerun()
     
     with tab2:
         st.subheader("应急流程管理")
@@ -87,7 +97,8 @@ def show_knowledge_base():
                         })
                         save_knowledge_base(kb)
                         st.success("流程已添加！")
-                        st.rerun()
+                        st.session_state.rerun = True
+                        rerun()
                     else:
                         st.error("请填写标题和步骤！")
         
@@ -103,7 +114,8 @@ def show_knowledge_base():
                     if st.button("删除", key=f"del_procedure_{idx}"):
                         kb['procedures'].pop(idx)
                         save_knowledge_base(kb)
-                        st.rerun()
+                        st.session_state.rerun = True
+                        rerun()
     
     with tab3:
         st.subheader("资源链接管理")
@@ -127,7 +139,8 @@ def show_knowledge_base():
                         })
                         save_knowledge_base(kb)
                         st.success("资源已添加！")
-                        st.rerun()
+                        st.session_state.rerun = True
+                        rerun()
                     else:
                         st.error("请填写标题和链接地址！")
         
@@ -143,4 +156,5 @@ def show_knowledge_base():
                     if st.button("删除", key=f"del_resource_{idx}"):
                         kb['resources'].pop(idx)
                         save_knowledge_base(kb)
-                        st.rerun()
+                        st.session_state.rerun = True
+                        rerun()

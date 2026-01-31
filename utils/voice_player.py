@@ -23,9 +23,17 @@ SOOTHING_MESSAGES = {
     'general': [
         "请保持冷静，我们已经收到您的求助信息，正在为您安排援助。",
         "不要担心，帮助正在路上，请耐心等待。",
-        "您的求助信号已成功发送，我们会尽快与您联系。"
+        "您的求助信号已成功发送，我们尽快与您联系。"
     ]
 }
+
+def rerun():
+    if 'rerun' not in st.session_state:
+        st.session_state.rerun = False
+    
+    if st.session_state.rerun:
+        st.session_state.rerun = False
+        st.experimental_rerun()
 
 class VoicePlayer:
     def __init__(self):
@@ -166,26 +174,30 @@ def show_voice_player(alert_type=None, custom_text=None):
             st.session_state.voice_player_text = text_input
             player.play_text(text_input)
             st.session_state.voice_player_status = "播放中"
-            st.rerun()
+            st.session_state.rerun = True
+            rerun()
     
     with col2:
         if st.button("⏸️ 暂停", key="voice_pause", disabled=not player.is_playing or player.is_paused):
             player.pause()
             st.session_state.voice_player_status = "已暂停"
-            st.rerun()
+            st.session_state.rerun = True
+            rerun()
     
     with col3:
         if st.button("▶️ 继续", key="voice_resume", disabled=not player.is_paused):
             player.resume()
             st.session_state.voice_player = player
             st.session_state.voice_player_status = "播放中"
-            st.rerun()
+            st.session_state.rerun = True
+            rerun()
     
     with col4:
         if st.button("⏹️ 停止", type="secondary", key="voice_stop", disabled=not player.is_playing):
             player.stop()
             st.session_state.voice_player_status = "已停止"
-            st.rerun()
+            st.session_state.rerun = True
+            rerun()
     
     st.markdown("---")
     

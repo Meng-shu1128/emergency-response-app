@@ -10,6 +10,14 @@ import heapq
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+def rerun():
+    if 'rerun' not in st.session_state:
+        st.session_state.rerun = False
+    
+    if st.session_state.rerun:
+        st.session_state.rerun = False
+        st.experimental_rerun()
+
 class Notification:
     def __init__(self, id: int, recipient: str, message: str, priority: str = "low", 
                  notification_type: str = "sms", retry_count: int = 0, max_retries: int = 3):
@@ -377,19 +385,22 @@ def show_notification_system_ui():
                     notification_type=notification_type
                 )
                 st.success(f"通知已添加到队列！ID: {notification_id}")
-                st.rerun()
+                st.session_state.rerun = True
+                rerun()
             else:
                 st.error("请填写接收者和通知内容！")
     
     with col2:
         if st.button("🔄 刷新统计", key="refresh_notify_stats"):
-            st.rerun()
+            st.session_state.rerun = True
+            rerun()
     
     with col3:
         if st.button("🧹 清空日志", key="clear_notify_logs"):
             st.session_state.notification_logs = []
             st.session_state.push_notifications = []
-            st.rerun()
+            st.session_state.rerun = True
+            rerun()
     
     st.markdown("---")
     
