@@ -20,7 +20,6 @@ def _get_alerts_hash(alerts: List[Dict]) -> str:
     alert_str = str(sorted([(a.get('id', 0), a.get('status', ''), a.get('risk_level', '')) for a in alerts]))
     return hashlib.md5(alert_str.encode()).hexdigest()
 
-@st.cache_data(ttl=300)
 def create_alert_map(
     alerts: List[Dict],
     center_lat: float = 39.9042,
@@ -41,10 +40,14 @@ def create_alert_map(
         folium.LayerControl().add_to(m)
     
     if alerts:
+        import math
         for alert in alerts:
-            if alert.get('location_lat') and alert.get('location_lng'):
-                lat = alert['location_lat']
-                lng = alert['location_lng']
+            lat = alert.get('location_lat')
+            lng = alert.get('location_lng')
+            
+            if lat and lng and isinstance(lat, (int, float)) and isinstance(lng, (int, float)):
+                if math.isnan(lat) or math.isnan(lng):
+                    continue
                 risk_level = alert.get('risk_level', 'medium').lower()
                 
                 color = RISK_LEVEL_COLORS.get(risk_level, 'blue')
@@ -135,9 +138,15 @@ def create_single_alert_map(
     alert: Dict,
     height: int = 400
 ) -> folium.Map:
-    if alert.get('location_lat') and alert.get('location_lng'):
-        lat = alert['location_lat']
-        lng = alert['location_lng']
+    import math
+    
+    lat = alert.get('location_lat')
+    lng = alert.get('location_lng')
+    
+    if lat and lng and isinstance(lat, (int, float)) and isinstance(lng, (int, float)):
+        if math.isnan(lat) or math.isnan(lng):
+            lat = 39.9042
+            lng = 116.4074
     else:
         lat = 39.9042
         lng = 116.4074

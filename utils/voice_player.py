@@ -139,6 +139,15 @@ def show_voice_player(alert_type=None, custom_text=None):
     if 'voice_player_status' not in st.session_state:
         st.session_state.voice_player_status = "就绪"
     
+    if 'voice_player_rate' not in st.session_state:
+        st.session_state.voice_player_rate = 200
+    
+    if 'voice_player_volume' not in st.session_state:
+        st.session_state.voice_player_volume = 1.0
+    
+    if 'voice_player_playing' not in st.session_state:
+        st.session_state.voice_player_playing = False
+    
     player = st.session_state.voice_player
     
     st.subheader("🔊 语音安抚播放器")
@@ -159,26 +168,43 @@ def show_voice_player(alert_type=None, custom_text=None):
             text_input = st.text_area("语音文本", value=selected_message, height=100, key="voice_text_input")
     
     with col2:
-        rate = st.slider("语速", min_value=50, max_value=400, value=200, step=10, key="voice_rate")
+        rate = st.slider(
+            "语速", 
+            min_value=50, 
+            max_value=400, 
+            value=st.session_state.voice_player_rate, 
+            step=10, 
+            key="voice_rate"
+        )
         player.set_rate(rate)
+        st.session_state.voice_player_rate = rate
         
-        volume = st.slider("音量", min_value=0.0, max_value=1.0, value=1.0, step=0.1, key="voice_volume")
+        volume = st.slider(
+            "音量", 
+            min_value=0.0, 
+            max_value=1.0, 
+            value=st.session_state.voice_player_volume, 
+            step=0.1, 
+            key="voice_volume"
+        )
         player.set_volume(volume)
+        st.session_state.voice_player_volume = volume
     
     st.markdown("---")
     
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        if st.button("▶️ 播放", type="primary", key="voice_play", disabled=player.is_playing and not player.is_paused):
+        if st.button("▶️ 播放", type="primary", key="voice_play", disabled=st.session_state.voice_player_playing):
             st.session_state.voice_player_text = text_input
+            st.session_state.voice_player_playing = True
             player.play_text(text_input)
             st.session_state.voice_player_status = "播放中"
             st.session_state.rerun = True
             rerun()
     
     with col2:
-        if st.button("⏸️ 暂停", key="voice_pause", disabled=not player.is_playing or player.is_paused):
+        if st.button("⏸️ 暂停", key="voice_pause", disabled=not st.session_state.voice_player_playing):
             player.pause()
             st.session_state.voice_player_status = "已暂停"
             st.session_state.rerun = True
@@ -193,8 +219,9 @@ def show_voice_player(alert_type=None, custom_text=None):
             rerun()
     
     with col4:
-        if st.button("⏹️ 停止", type="secondary", key="voice_stop", disabled=not player.is_playing):
+        if st.button("⏹️ 停止", type="secondary", key="voice_stop", disabled=not st.session_state.voice_player_playing):
             player.stop()
+            st.session_state.voice_player_playing = False
             st.session_state.voice_player_status = "已停止"
             st.session_state.rerun = True
             rerun()
@@ -215,13 +242,16 @@ def show_voice_player(alert_type=None, custom_text=None):
     
     if player.playback_thread and player.playback_thread.is_alive():
         st.session_state.voice_player_status = "播放中"
+        st.session_state.voice_player_playing = True
     elif player.is_paused:
         st.session_state.voice_player_status = "已暂停"
     elif player.is_playing:
         st.session_state.voice_player_status = "已停止"
         player.is_playing = False
+        st.session_state.voice_player_playing = False
     else:
         st.session_state.voice_player_status = "就绪"
+        st.session_state.voice_player_playing = False
 
 def play_soothing_message(alert_type, message_index=0):
     messages = get_soothing_messages(alert_type)

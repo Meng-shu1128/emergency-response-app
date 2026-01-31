@@ -3,7 +3,8 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from utils.database import get_users, get_alerts
+from utils.database import get_users, get_alerts, generate_mock_data
+from utils.config_manager import get_config_manager, reload_config
 
 def rerun():
     if 'rerun' not in st.session_state:
@@ -22,27 +23,147 @@ def show_settings():
     with tab1:
         st.subheader("API密钥配置")
         
-        st.info("请在项目根目录的 .env 文件中配置以下API密钥")
+        st.info("在此页面配置API密钥，将自动保存到 .env 文件")
         
-        with st.form("api_config"):
-            api_key = st.text_input("主API密钥", type="password", placeholder="your_api_key_here")
-            map_api_key = st.text_input("地图API密钥", type="password", placeholder="your_map_api_key_here")
-            sms_api_key = st.text_input("短信API密钥", type="password", placeholder="your_sms_api_key_here")
-            notification_api_key = st.text_input("通知API密钥", type="password", placeholder="your_notification_api_key_here")
+        config_manager = get_config_manager()
+        config_status = config_manager.get_config_status()
+        
+        st.markdown("### 当前配置")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("**地图API密钥**")
+            if config_status['MAP_API_KEY']['configured']:
+                if config_status['MAP_API_KEY']['valid']:
+                    st.success("✅ 已配置")
+                else:
+                    st.warning("⚠️ 配置无效")
+                st.code(config_status['MAP_API_KEY']['value'])
+            else:
+                st.warning("⚠️ 未配置")
             
-            if st.form_submit_button("保存配置"):
-                st.warning("请直接编辑 .env 文件来保存配置")
-                st.code(f"""API_KEY={api_key}
-MAP_API_KEY={map_api_key}
-SMS_API_KEY={sms_api_key}
-NOTIFICATION_API_KEY={notification_api_key}""")
+            st.markdown("**天气API密钥**")
+            if config_status['WEATHER_API_KEY']['configured']:
+                if config_status['WEATHER_API_KEY']['valid']:
+                    st.success("✅ 已配置")
+                else:
+                    st.warning("⚠️ 配置无效")
+                st.code(config_status['WEATHER_API_KEY']['value'])
+            else:
+                st.warning("⚠️ 未配置")
+        
+        with col2:
+            st.markdown("**短信API密钥**")
+            if config_status['SMS_API_KEY']['configured']:
+                if config_status['SMS_API_KEY']['valid']:
+                    st.success("✅ 已配置")
+                else:
+                    st.warning("⚠️ 配置无效")
+                st.code(config_status['SMS_API_KEY']['value'])
+            else:
+                st.warning("⚠️ 未配置")
+            
+            st.markdown("**通知API密钥**")
+            if config_status['NOTIFICATION_API_KEY']['configured']:
+                if config_status['NOTIFICATION_API_KEY']['valid']:
+                    st.success("✅ 已配置")
+                else:
+                    st.warning("⚠️ 配置无效")
+                st.code(config_status['NOTIFICATION_API_KEY']['value'])
+            else:
+                st.warning("⚠️ 未配置")
         
         st.markdown("---")
-        st.markdown("### 当前环境变量")
-        st.code(os.getenv('API_KEY', '未设置'))
-        st.code(os.getenv('MAP_API_KEY', '未设置'))
-        st.code(os.getenv('SMS_API_KEY', '未设置'))
-        st.code(os.getenv('NOTIFICATION_API_KEY', '未设置'))
+        st.markdown("### 更新配置")
+        
+        with st.form("api_config"):
+            st.markdown("输入新的API密钥（留空则保持不变）")
+            
+            new_map_api_key = st.text_input(
+                "地图API密钥", 
+                type="password", 
+                placeholder="留空保持不变",
+                help="用于地图显示和位置服务"
+            )
+            
+            new_weather_api_key = st.text_input(
+                "天气API密钥", 
+                type="password", 
+                placeholder="留空保持不变",
+                help="用于获取天气信息进行风险评估"
+            )
+            
+            new_sms_api_key = st.text_input(
+                "短信API密钥", 
+                type="password", 
+                placeholder="留空保持不变",
+                help="用于发送紧急通知短信"
+            )
+            
+            new_notification_api_key = st.text_input(
+                "通知API密钥", 
+                type="password", 
+                placeholder="留空保持不变",
+                help="用于APP推送通知"
+            )
+            
+            submitted = st.form_submit_button("保存并重新加载", type="primary")
+            
+            if submitted:
+                changes_made = False
+                validation_errors = []
+                
+                if new_map_api_key:
+                    is_valid, message = config_manager.validate_api_key('MAP_API_KEY', new_map_api_key)
+                    if is_valid:
+                        config_manager.set('MAP_API_KEY', new_map_api_key)
+                        changes_made = True
+                    else:
+                        validation_errors.append(f"地图API密钥: {message}")
+                
+                if new_weather_api_key:
+                    is_valid, message = config_manager.validate_api_key('WEATHER_API_KEY', new_weather_api_key)
+                    if is_valid:
+                        config_manager.set('WEATHER_API_KEY', new_weather_api_key)
+                        changes_made = True
+                    else:
+                        validation_errors.append(f"天气API密钥: {message}")
+                
+                if new_sms_api_key:
+                    is_valid, message = config_manager.validate_api_key('SMS_API_KEY', new_sms_api_key)
+                    if is_valid:
+                        config_manager.set('SMS_API_KEY', new_sms_api_key)
+                        changes_made = True
+                    else:
+                        validation_errors.append(f"短信API密钥: {message}")
+                
+                if new_notification_api_key:
+                    is_valid, message = config_manager.validate_api_key('NOTIFICATION_API_KEY', new_notification_api_key)
+                    if is_valid:
+                        config_manager.set('NOTIFICATION_API_KEY', new_notification_api_key)
+                        changes_made = True
+                    else:
+                        validation_errors.append(f"通知API密钥: {message}")
+                
+                if validation_errors:
+                    st.error("❌ 配置验证失败：")
+                    for error in validation_errors:
+                        st.error(f"  - {error}")
+                elif changes_made:
+                    st.success("✅ 配置已更新，请重启应用！")
+                    st.info("💡 点击下方按钮重启应用使新配置生效")
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.button("🔄 立即重启应用", type="primary"):
+                            reload_config()
+                            st.session_state.rerun = True
+                            rerun()
+                    with col2:
+                        if st.button("📋 查看当前配置"):
+                            st.json(config_manager.get_masked_config())
+                else:
+                    st.warning("⚠️ 没有检测到任何更改")
     
     with tab2:
         st.subheader("用户管理")
@@ -146,11 +267,32 @@ NOTIFICATION_API_KEY={notification_api_key}""")
         st.markdown("---")
         st.warning("⚠️ 危险操作区域")
         
-        if st.button("清空所有数据", type="secondary"):
-            st.error("此操作将删除所有数据，请谨慎操作！")
-            if st.checkbox("我确认要清空所有数据"):
-                from utils.database import init_database
-                init_database()
-                st.success("数据库已重置！")
-                st.session_state.rerun = True
-                rerun()
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("🎲 生成模拟数据", type="primary"):
+                st.warning("此操作将生成模拟数据用于演示！")
+                if st.checkbox("我确认要生成模拟数据"):
+                    with st.spinner("正在生成模拟数据..."):
+                        result = generate_mock_data()
+                    
+                    st.success(f"✅ 模拟数据生成成功！")
+                    st.info(f"  - 生成用户: {result['users']} 个")
+                    st.info(f"  - 生成历史警报: {result['alerts']} 条")
+                    st.info(f"  - 生成今日警报: {result['today_alerts']} 条")
+                    st.info(f"  - 总计警报: {result['total_alerts']} 条")
+                    st.info("💡 请刷新页面查看数据")
+                    
+                    if st.button("🔄 立即刷新"):
+                        st.session_state.rerun = True
+                        rerun()
+        
+        with col2:
+            if st.button("🗑️ 清空所有数据", type="secondary"):
+                st.error("此操作将删除所有数据，请谨慎操作！")
+                if st.checkbox("我确认要清空所有数据"):
+                    from utils.database import init_database
+                    init_database()
+                    st.success("数据库已重置！")
+                    st.session_state.rerun = True
+                    rerun()

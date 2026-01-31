@@ -220,3 +220,145 @@ def get_statistics():
         'resolved_alerts': resolved_alerts,
         'high_risk_alerts': high_risk_alerts
     }
+
+def generate_mock_users(count: int = 5):
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    mock_users = [
+        ("张三", "13812345678", "北京市朝阳区建国路88号", "13912345678"),
+        ("李四", "13812345679", "北京市海淀区中关村大街1号", "13912345679"),
+        ("王五", "13812345680", "北京市西城区金融街35号", "13912345680"),
+        ("赵六", "13812345681", "北京市东城区王府井大街1号", "13912345681"),
+        ("孙七", "13812345682", "北京市丰台区南三环西路3号", "13912345682"),
+    ]
+    
+    user_ids = []
+    for i in range(min(count, len(mock_users))):
+        name, phone, address, emergency_contact = mock_users[i]
+        
+        cursor.execute('''
+            INSERT INTO users (name, phone, address, emergency_contact)
+            VALUES (?, ?, ?, ?)
+        ''', (name, phone, address, emergency_contact))
+        
+        user_id = cursor.lastrowid
+        user_ids.append(user_id)
+    
+    conn.commit()
+    conn.close()
+    
+    return user_ids
+
+def generate_mock_alerts(user_ids: List[int], count: int = 10):
+    if not user_ids:
+        return []
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    import random
+    from datetime import timedelta
+    
+    statuses = ["pending", "processing", "resolved"]
+    risk_levels = ["low", "medium", "high"]
+    descriptions = [
+        "老人在家中跌倒，需要紧急救助",
+        "突发心脏病，请求医疗急救",
+        "家中发生火灾，请求消防支援",
+        "发现可疑人员，请求治安协助",
+        "老人感到身体不适，需要医疗检查",
+        "忘记服药，需要提醒",
+        "家中燃气泄漏，请求紧急处理",
+        "老人走失，请求协助寻找",
+        "突发高血压，需要医疗救助",
+        "家中水管破裂，请求维修"
+    ]
+    
+    alert_ids = []
+    for i in range(count):
+        user_id = random.choice(user_ids)
+        status = random.choice(statuses)
+        risk_level = random.choice(risk_levels)
+        description = random.choice(descriptions)
+        
+        base_lat = 39.9042
+        base_lng = 116.4074
+        location_lat = base_lat + random.uniform(-0.1, 0.1)
+        location_lng = base_lng + random.uniform(-0.1, 0.1)
+        
+        alert_time = datetime.now() - timedelta(days=random.randint(1, 30))
+        
+        cursor.execute('''
+            INSERT INTO alerts (user_id, alert_time, location_lat, location_lng, status, risk_level, description)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (user_id, alert_time, location_lat, location_lng, status, risk_level, description))
+        
+        alert_id = cursor.lastrowid
+        alert_ids.append(alert_id)
+    
+    conn.commit()
+    conn.close()
+    
+    return alert_ids
+
+def generate_mock_today_alerts(user_ids: List[int], count: int = 3):
+    if not user_ids:
+        return []
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    import random
+    from datetime import timedelta
+    
+    statuses = ["pending", "processing"]
+    risk_levels = ["medium", "high"]
+    descriptions = [
+        "老人在家中跌倒，请求紧急救助",
+        "突发心脏病，请求医疗急救",
+        "家中发生火灾，请求消防支援"
+    ]
+    
+    alert_ids = []
+    for i in range(count):
+        user_id = random.choice(user_ids)
+        status = random.choice(statuses)
+        risk_level = random.choice(risk_levels)
+        description = random.choice(descriptions)
+        
+        base_lat = 39.9042
+        base_lng = 116.4074
+        location_lat = base_lat + random.uniform(-0.05, 0.05)
+        location_lng = base_lng + random.uniform(-0.05, 0.05)
+        
+        alert_time = datetime.now() - timedelta(hours=random.randint(0, 23))
+        
+        cursor.execute('''
+            INSERT INTO alerts (user_id, alert_time, location_lat, location_lng, status, risk_level, description)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (user_id, alert_time, location_lat, location_lng, status, risk_level, description))
+        
+        alert_id = cursor.lastrowid
+        alert_ids.append(alert_id)
+    
+    conn.commit()
+    conn.close()
+    
+    return alert_ids
+
+def generate_mock_data():
+    user_count = 5
+    alert_count = 10
+    today_alert_count = 3
+    
+    user_ids = generate_mock_users(user_count)
+    alert_ids = generate_mock_alerts(user_ids, alert_count)
+    today_alert_ids = generate_mock_today_alerts(user_ids, today_alert_count)
+    
+    return {
+        'users': len(user_ids),
+        'alerts': len(alert_ids),
+        'today_alerts': len(today_alert_ids),
+        'total_alerts': len(alert_ids) + len(today_alert_ids)
+    }
