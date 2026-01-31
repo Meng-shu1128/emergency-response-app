@@ -258,7 +258,8 @@ def show_dashboard():
         show_risk_assessment_ui()
     
     with tab7:
-        alerts = get_alerts_with_details()
+        alerts_result = get_alerts_with_details()
+        alerts = alerts_result.get('data', []) if isinstance(alerts_result, dict) else alerts_result
         all_response_logs = []
         
         for alert in alerts:

@@ -76,14 +76,16 @@ NOTIFICATION_API_KEY={notification_api_key}""")
         with col1:
             st.markdown("### 数据统计")
             users = get_users()
-            alerts = get_alerts()
+            alerts_result = get_alerts()
+            
+            alerts = alerts_result.get('data', []) if isinstance(alerts_result, dict) else alerts_result
             
             st.metric("用户总数", len(users))
             st.metric("求助记录总数", len(alerts))
             
             if alerts:
-                pending = len([a for a in alerts if a['status'] == 'pending'])
-                resolved = len([a for a in alerts if a['status'] == 'resolved'])
+                pending = len([a for a in alerts if isinstance(a, dict) and a.get('status') == 'pending'])
+                resolved = len([a for a in alerts if isinstance(a, dict) and a.get('status') == 'resolved'])
                 
                 st.metric("待处理求助", pending)
                 st.metric("已解决求助", resolved)
