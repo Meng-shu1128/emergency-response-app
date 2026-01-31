@@ -71,5 +71,4 @@ def main():
         from pages.settings import show_settings
         show_settings()
 
-if __name__ == "__main__":
-    main()
+main()
