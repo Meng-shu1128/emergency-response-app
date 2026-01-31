@@ -1,0 +1,32 @@
+[server]
+port = 8501
+headless = true
+runOnSave = true
+fileWatcherType = "poll"
+maxUploadSize = 200
+
+[browser]
+gatherUsageStats = false
+serverAddress = "localhost"
+showErrorDetails = true
+
+[client]
+showErrorDetails = true
+toolbarMode = "minimal"
+maxCachedMessageAge = 0
+
+[theme]
+primaryColor = "#FF4B4B"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F2F6"
+textColor = "#262730"
+font = "sans serif"
+
+[logger]
+level = "info"
+
+[client.ui]
+mode = "wide"
+
+[runner]
+fastReruns = false
