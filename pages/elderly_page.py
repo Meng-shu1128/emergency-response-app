@@ -13,7 +13,7 @@ def show_elderly_page():
     st.markdown("---")
     
     if "elderly_user_id" not in st.session_state:
-        st. session_state.elderly_user_id = None
+        st.session_state.elderly_user_id = None
     
     col1, col2 = st.columns([1, 1])
     

@@ -8,12 +8,9 @@ maxUploadSize = 200
 [browser]
 gatherUsageStats = false
 serverAddress = "localhost"
-showErrorDetails = true
 
 [client]
-showErrorDetails = true
 toolbarMode = "minimal"
-maxCachedMessageAge = 0
 
 [theme]
 primaryColor = "#FF4B4B"
@@ -24,9 +21,6 @@ font = "sans serif"
 
 [logger]
 level = "info"
-
-[client.ui]
-mode = "wide"
 
 [runner]
 fastReruns = false
